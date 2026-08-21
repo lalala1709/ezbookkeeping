@@ -76,7 +76,9 @@ func initializeDatabase(dbConfig *settings.DatabaseConfig) (*Database, error) {
 		}
 	}
 
-	if dbConfig.DatabaseType == settings.MySqlDbType {
+	if dbConfig.DatabaseURL != "" {
+		connStr = dbConfig.DatabaseURL
+	} else if dbConfig.DatabaseType == settings.MySqlDbType {
 		connStr, err = getMysqlConnectionString(dbConfig)
 	} else if dbConfig.DatabaseType == settings.PostgresDbType {
 		connStr, err = getPostgresConnectionString(dbConfig)

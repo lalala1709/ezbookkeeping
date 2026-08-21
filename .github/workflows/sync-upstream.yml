@@ -1,0 +1,38 @@
+name: Update from ezBookkeeping upstream
+
+on:
+  schedule:
+    # Daily at 09:17 (Vietnam time, UTC+7). GitHub may delay scheduled jobs.
+    - cron: "17 2 * * *"
+  workflow_dispatch:
+
+# Required for this workflow to push the merged upstream changes back to the
+# user's repository. Enable "Read and write permissions" in repository Actions
+# settings after the first push.
+permissions:
+  contents: write
+
+concurrency:
+  group: sync-upstream-main
+  cancel-in-progress: false
+
+jobs:
+  sync:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out this repository
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Merge the newest upstream main branch
+        shell: bash
+        run: |
+          git config user.name "ezBookkeeping updater"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git remote add upstream https://github.com/mayswind/ezbookkeeping.git
+          git fetch upstream main --prune
+          git merge --no-edit upstream/main
+
+      - name: Push the update
+        run: git push origin HEAD:main

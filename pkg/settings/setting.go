@@ -214,6 +214,7 @@ const (
 // DatabaseConfig represents the database setting config
 type DatabaseConfig struct {
 	DatabaseType     string
+	DatabaseURL      string
 	DatabaseHost     string
 	DatabaseName     string
 	DatabaseUser     string
@@ -729,6 +730,7 @@ func loadDatabaseConfiguration(config *Config, configFile *ini.File, sectionName
 		return errs.ErrDatabaseTypeInvalid
 	}
 
+	dbConfig.DatabaseURL = getConfigItemStringValue(configFile, sectionName, "url")
 	dbConfig.DatabaseHost = getConfigItemStringValue(configFile, sectionName, "host", defaultDatabaseHost)
 	dbConfig.DatabaseName = getConfigItemStringValue(configFile, sectionName, "name", defaultDatabaseName)
 	dbConfig.DatabaseUser = getConfigItemStringValue(configFile, sectionName, "user")
