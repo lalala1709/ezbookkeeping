@@ -47,10 +47,10 @@ var (
 
 // ListUsersHandler returns active member accounts.
 func (a *AdministrationApi) ListUsersHandler(c *core.WebContext) (any, *errs.Error) {
-	currentUser, err := a.authorize(c)
+	currentUser, authorizeErr := a.authorize(c)
 
-	if err != nil {
-		return nil, err
+	if authorizeErr != nil {
+		return nil, authorizeErr
 	}
 
 	users, getUsersErr := a.users.GetAllUsers(c)
@@ -87,10 +87,10 @@ func (a *AdministrationApi) ListUsersHandler(c *core.WebContext) (any, *errs.Err
 
 // UpdateUserPasswordHandler resets a member password and revokes their active sessions.
 func (a *AdministrationApi) UpdateUserPasswordHandler(c *core.WebContext) (any, *errs.Error) {
-	currentUser, err := a.authorize(c)
+	currentUser, authorizeErr := a.authorize(c)
 
-	if err != nil {
-		return nil, err
+	if authorizeErr != nil {
+		return nil, authorizeErr
 	}
 
 	var request models.AdminUserPasswordUpdateRequest
@@ -131,10 +131,10 @@ func (a *AdministrationApi) UpdateUserPasswordHandler(c *core.WebContext) (any, 
 
 // DeleteUserHandler removes a member account and revokes their active sessions.
 func (a *AdministrationApi) DeleteUserHandler(c *core.WebContext) (any, *errs.Error) {
-	currentUser, err := a.authorize(c)
+	currentUser, authorizeErr := a.authorize(c)
 
-	if err != nil {
-		return nil, err
+	if authorizeErr != nil {
+		return nil, authorizeErr
 	}
 
 	user, requestErr := a.getRequestedUser(c, "DeleteUserHandler")
@@ -163,10 +163,10 @@ func (a *AdministrationApi) DeleteUserHandler(c *core.WebContext) (any, *errs.Er
 
 // ClearUserDataHandler deletes a member's financial data but retains the member account.
 func (a *AdministrationApi) ClearUserDataHandler(c *core.WebContext) (any, *errs.Error) {
-	currentUser, err := a.authorize(c)
+	currentUser, authorizeErr := a.authorize(c)
 
-	if err != nil {
-		return nil, err
+	if authorizeErr != nil {
+		return nil, authorizeErr
 	}
 
 	user, requestErr := a.getRequestedUser(c, "ClearUserDataHandler")
@@ -222,10 +222,10 @@ func (a *AdministrationApi) ClearUserDataHandler(c *core.WebContext) (any, *errs
 
 // UpdateUserAdministratorHandler grants or removes administrator permission. Only the root administrator may change roles.
 func (a *AdministrationApi) UpdateUserAdministratorHandler(c *core.WebContext) (any, *errs.Error) {
-	currentUser, err := a.authorize(c)
+	currentUser, authorizeErr := a.authorize(c)
 
-	if err != nil {
-		return nil, err
+	if authorizeErr != nil {
+		return nil, authorizeErr
 	}
 
 	if !currentUser.IsRootAdministrator {
