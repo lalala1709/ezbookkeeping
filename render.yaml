@@ -28,9 +28,13 @@ services:
         value: console
       - key: EBK_SECURITY_SECRET_KEY
         generateValue: true
-      # Set this secret in Render before opening /desktop#/admin. A blank value
-      # keeps the administration API disabled.
-      - key: EBK_SECURITY_ADMIN_PASSWORD
+      # Set these three values in Render before opening /admin. The first
+      # deployment creates one protected root administrator account.
+      - key: EBK_SECURITY_ROOT_ADMIN_USERNAME
+        sync: false
+      - key: EBK_SECURITY_ROOT_ADMIN_EMAIL
+        sync: false
+      - key: EBK_SECURITY_ROOT_ADMIN_PASSWORD
         sync: false
       # Free Render web services have no persistent disk. Disable uploads so
       # avatars and receipt pictures are not silently lost after a redeploy.

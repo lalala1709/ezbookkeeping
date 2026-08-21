@@ -1,0 +1,278 @@
+<!doctype html>
+<html lang="vi">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="robots" content="noindex,nofollow">
+    <title>Quản trị thành viên</title>
+    <style>
+        :root { color-scheme: light; font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; background: #f7f7f8; color: #1f2937; }
+        * { box-sizing: border-box; }
+        body { margin: 0; min-width: 320px; }
+        button, input { font: inherit; }
+        button { cursor: pointer; }
+        .page { min-height: 100vh; padding: 36px 20px; display: flex; justify-content: center; align-items: flex-start; }
+        .card { width: min(1200px, 100%); border: 1px solid #e5e7eb; border-radius: 16px; background: #fff; box-shadow: 0 12px 40px rgba(31, 41, 55, .09); overflow: hidden; }
+        .header { padding: 24px 28px; display: flex; gap: 14px; align-items: center; border-bottom: 1px solid #e5e7eb; }
+        .shield { width: 42px; height: 42px; border-radius: 12px; background: #eff6ff; color: #2563eb; display: grid; place-items: center; font-size: 24px; }
+        .header h1 { font-size: 20px; margin: 0; }
+        .header p { margin: 3px 0 0; color: #6b7280; font-size: 14px; }
+        .header .spacer { flex: 1; }
+        .content { padding: 28px; }
+        .login { width: min(430px, 100%); margin: 0 auto; }
+        h2 { font-size: 18px; margin: 0 0 8px; }
+        .muted { color: #6b7280; font-size: 14px; line-height: 1.5; }
+        .field { display: block; margin-top: 18px; color: #374151; font-weight: 600; font-size: 14px; }
+        .field input { width: 100%; margin-top: 7px; padding: 11px 12px; border: 1px solid #d1d5db; border-radius: 9px; font-weight: 400; outline: none; }
+        .field input:focus { border-color: #2563eb; box-shadow: 0 0 0 3px #dbeafe; }
+        .button { border: 0; border-radius: 9px; padding: 10px 14px; font-weight: 650; background: #2563eb; color: #fff; }
+        .button:hover { background: #1d4ed8; }
+        .button:disabled { opacity: .55; cursor: not-allowed; }
+        .button.secondary { color: #1d4ed8; background: #eff6ff; }
+        .button.warning { color: #92400e; background: #fef3c7; }
+        .button.danger { color: #b91c1c; background: #fee2e2; }
+        .button.neutral { color: #374151; background: #f3f4f6; }
+        .button.small { padding: 7px 9px; font-size: 12px; }
+        .button.full { width: 100%; margin-top: 22px; }
+        .message { display: none; margin: 18px 0 0; padding: 11px 13px; border-radius: 9px; font-size: 14px; line-height: 1.4; }
+        .message.error { display: block; color: #991b1b; background: #fef2f2; border: 1px solid #fecaca; }
+        .message.success { display: block; color: #166534; background: #f0fdf4; border: 1px solid #bbf7d0; }
+        .message.info { display: block; color: #1e40af; background: #eff6ff; border: 1px solid #bfdbfe; }
+        .hidden { display: none !important; }
+        .toolbar { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
+        .toolbar .count { font-weight: 700; }
+        .toolbar .spacer { flex: 1; }
+        .table-wrap { overflow-x: auto; border: 1px solid #e5e7eb; border-radius: 10px; }
+        table { border-collapse: collapse; min-width: 880px; width: 100%; text-align: left; }
+        th, td { padding: 14px 16px; border-bottom: 1px solid #e5e7eb; vertical-align: middle; }
+        th { color: #6b7280; background: #f9fafb; font-size: 12px; letter-spacing: .025em; text-transform: uppercase; }
+        tbody tr:last-child td { border-bottom: none; }
+        .name { font-weight: 700; }
+        .email, .secondary-text { color: #6b7280; font-size: 13px; margin-top: 3px; }
+        .pill { display: inline-block; border-radius: 999px; padding: 4px 9px; font-size: 12px; font-weight: 700; }
+        .pill.active { background: #dcfce7; color: #166534; }
+        .pill.admin { background: #dbeafe; color: #1d4ed8; margin-left: 5px; }
+        .pill.root { background: #f3e8ff; color: #7e22ce; margin-left: 5px; }
+        .pill.locked { background: #fef3c7; color: #92400e; }
+        .actions { white-space: nowrap; display: flex; justify-content: flex-end; gap: 6px; }
+        .role { display: flex; gap: 6px; align-items: center; color: #374151; font-size: 13px; white-space: nowrap; }
+        .footer { color: #6b7280; font-size: 12px; padding: 20px 28px; border-top: 1px solid #e5e7eb; }
+        @media (max-width: 620px) { .page { padding: 16px 10px; } .content, .header { padding: 20px; } .header { align-items: flex-start; } .header .logout { display: none; } }
+    </style>
+</head>
+<body>
+    <main class="page">
+        <section class="card">
+            <header class="header">
+                <div class="shield">♜</div>
+                <div>
+                    <h1>Quản trị thành viên</h1>
+                    <p>ezBookkeeping</p>
+                </div>
+                <div class="spacer"></div>
+                <button class="button neutral logout hidden" id="logoutButton">Đăng xuất</button>
+            </header>
+
+            <div class="content" id="loginPanel">
+                <form class="login" id="loginForm">
+                    <h2>Đăng nhập quản trị</h2>
+                    <p class="muted">Dùng tài khoản đã được cấp quyền quản trị. Mật khẩu không được lưu trên trình duyệt.</p>
+                    <label class="field">Tên đăng nhập hoặc email
+                        <input id="loginName" autocomplete="username" required autofocus>
+                    </label>
+                    <label class="field">Mật khẩu
+                        <input id="loginPassword" type="password" autocomplete="current-password" required>
+                    </label>
+                    <div id="twoFactorFields" class="hidden">
+                        <label class="field">Mã xác thực hai lớp
+                            <input id="twoFactorCode" inputmode="numeric" autocomplete="one-time-code" placeholder="Mã gồm 6 số">
+                        </label>
+                    </div>
+                    <div id="loginMessage" class="message"></div>
+                    <button class="button full" id="loginButton" type="submit">Đăng nhập</button>
+                </form>
+            </div>
+
+            <div class="content hidden" id="dashboardPanel">
+                <div class="toolbar">
+                    <div><span class="count" id="memberCount">0</span> thành viên đang hoạt động</div>
+                    <div class="spacer"></div>
+                    <button class="button secondary" id="refreshButton">Làm mới danh sách</button>
+                </div>
+                <div id="dashboardMessage" class="message"></div>
+                <div class="table-wrap">
+                    <table>
+                        <thead><tr><th>Thành viên</th><th>Trạng thái</th><th>Đăng ký</th><th>Đăng nhập gần nhất</th><th>Quyền</th><th>Thao tác</th></tr></thead>
+                        <tbody id="memberRows"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <footer class="footer">Tài khoản gốc được bảo vệ: không thể xóa, đặt lại mật khẩu, xóa dữ liệu hoặc thu quyền ngay trong trang này.</footer>
+        </section>
+    </main>
+
+    <script>
+        const state = { token: '', twoFactorToken: '', currentUsername: '', currentIsRootAdministrator: false, users: [] };
+        const loginPanel = document.getElementById('loginPanel');
+        const dashboardPanel = document.getElementById('dashboardPanel');
+        const loginForm = document.getElementById('loginForm');
+        const loginName = document.getElementById('loginName');
+        const loginPassword = document.getElementById('loginPassword');
+        const loginButton = document.getElementById('loginButton');
+        const twoFactorFields = document.getElementById('twoFactorFields');
+        const twoFactorCode = document.getElementById('twoFactorCode');
+        const memberRows = document.getElementById('memberRows');
+
+        function escapeHtml(value) {
+            return String(value || '').replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
+        }
+
+        function showMessage(elementId, message, kind) {
+            const element = document.getElementById(elementId);
+            element.textContent = message || '';
+            element.className = message ? `message ${kind}` : 'message';
+        }
+
+        function formatTime(value) {
+            const unixTime = Number(value);
+            return unixTime ? new Intl.DateTimeFormat('vi-VN', { dateStyle: 'medium', timeStyle: 'short' }).format(new Date(unixTime * 1000)) : 'Chưa đăng nhập';
+        }
+
+        async function request(path, options = {}) {
+            const headers = { 'Content-Type': 'application/json', ...(options.headers || {}) };
+            if (state.token) headers.Authorization = `Bearer ${state.token}`;
+            const response = await fetch(path, { ...options, headers });
+            let body = {};
+            try { body = await response.json(); } catch (_) { }
+            if (!response.ok || !body.success) {
+                if (response.status === 401 && state.token) logout();
+                throw new Error(body.errorMessage || 'Không thể thực hiện yêu cầu.');
+            }
+            return body.result;
+        }
+
+        async function login(event) {
+            event.preventDefault();
+            showMessage('loginMessage', '', 'error');
+            loginButton.disabled = true;
+            try {
+                let result;
+                if (state.twoFactorToken) {
+                    result = await request('/api/2fa/authorize.json', {
+                        method: 'POST',
+                        headers: { Authorization: `Bearer ${state.twoFactorToken}` },
+                        body: JSON.stringify({ passcode: twoFactorCode.value })
+                    });
+                } else {
+                    result = await request('/api/authorize.json', {
+                        method: 'POST',
+                        body: JSON.stringify({ loginName: loginName.value.trim(), password: loginPassword.value })
+                    });
+                }
+                if (result.need2FA) {
+                    state.twoFactorToken = result.token;
+                    twoFactorFields.classList.remove('hidden');
+                    twoFactorCode.focus();
+                    showMessage('loginMessage', 'Nhập mã xác thực hai lớp để tiếp tục.', 'info');
+                    return;
+                }
+                state.token = result.token;
+                state.twoFactorToken = '';
+                twoFactorFields.classList.add('hidden');
+                await loadUsers();
+                loginPassword.value = '';
+                twoFactorCode.value = '';
+                loginPanel.classList.add('hidden');
+                dashboardPanel.classList.remove('hidden');
+                document.getElementById('logoutButton').classList.remove('hidden');
+            } catch (error) {
+                showMessage('loginMessage', error.message, 'error');
+            } finally {
+                loginButton.disabled = false;
+            }
+        }
+
+        async function loadUsers() {
+            const result = await request('/api/admin/users.json');
+            state.users = result.users || [];
+            state.currentUsername = result.currentUsername;
+            state.currentIsRootAdministrator = !!result.currentIsRootAdministrator;
+            document.getElementById('memberCount').textContent = result.totalUserCount || '0';
+            renderUsers();
+        }
+
+        function renderUsers() {
+            if (!state.users.length) {
+                memberRows.innerHTML = '<tr><td colspan="6" class="secondary-text" style="text-align:center;padding:30px">Chưa có thành viên nào.</td></tr>';
+                return;
+            }
+            memberRows.innerHTML = state.users.map(user => {
+                const protectedUser = user.isRootAdministrator || user.username === state.currentUsername;
+                const status = user.disabled ? '<span class="pill locked">Đã khóa</span>' : '<span class="pill active">Hoạt động</span>';
+                const role = user.isRootAdministrator ? '<span class="pill root">Quản trị gốc</span>' : user.isAdministrator ? '<span class="pill admin">Quản trị viên</span>' : '<span class="secondary-text">Thành viên</span>';
+                const roleControl = state.currentIsRootAdministrator && !user.isRootAdministrator
+                    ? `<label class="role"><input type="checkbox" data-action="role" data-username="${escapeHtml(user.username)}" ${user.isAdministrator ? 'checked' : ''}> Quản trị</label>`
+                    : role;
+                const actions = protectedUser
+                    ? '<span class="secondary-text">Được bảo vệ</span>'
+                    : `<button class="button small secondary" data-action="password" data-username="${escapeHtml(user.username)}">Đổi mật khẩu</button><button class="button small warning" data-action="clear" data-username="${escapeHtml(user.username)}">Xóa dữ liệu</button><button class="button small danger" data-action="delete" data-username="${escapeHtml(user.username)}">Xóa tài khoản</button>`;
+                return `<tr><td><div class="name">${escapeHtml(user.nickname)}</div><div class="secondary-text">${escapeHtml(user.username)}</div><div class="email">${escapeHtml(user.email)}</div></td><td>${status}</td><td>${formatTime(user.createdAt)}</td><td>${formatTime(user.lastLoginAt)}</td><td>${roleControl}</td><td><div class="actions">${actions}</div></td></tr>`;
+            }).join('');
+        }
+
+        async function runAction(message, action) {
+            showMessage('dashboardMessage', '', 'error');
+            try {
+                await action();
+                await loadUsers();
+                showMessage('dashboardMessage', message, 'success');
+            } catch (error) {
+                showMessage('dashboardMessage', error.message, 'error');
+            }
+        }
+
+        async function handleMemberAction(action, username, checked) {
+            if (action === 'password') {
+                const password = prompt(`Mật khẩu mới cho ${username} (ít nhất 6 ký tự):`);
+                if (password === null) return;
+                if (password.length < 6) return showMessage('dashboardMessage', 'Mật khẩu phải có ít nhất 6 ký tự.', 'error');
+                return runAction(`Đã đổi mật khẩu và đăng xuất các phiên của ${username}.`, () => request('/api/admin/users/password.json', { method: 'POST', body: JSON.stringify({ username, password }) }));
+            }
+            if (action === 'clear') {
+                if (!confirm(`Xóa toàn bộ giao dịch, tài khoản, danh mục và dữ liệu phụ của ${username}? Không thể hoàn tác.`)) return;
+                return runAction(`Đã xóa dữ liệu của ${username}.`, () => request('/api/admin/users/clear_data.json', { method: 'POST', body: JSON.stringify({ username }) }));
+            }
+            if (action === 'delete') {
+                if (prompt(`Gõ đúng tên đăng nhập ${username} để xác nhận xóa:`) !== username) return;
+                return runAction(`Đã xóa tài khoản ${username}.`, () => request('/api/admin/users/delete.json', { method: 'POST', body: JSON.stringify({ username }) }));
+            }
+            if (action === 'role') {
+                const roleText = checked ? 'cấp quyền quản trị' : 'thu quyền quản trị';
+                if (!confirm(`Bạn có chắc muốn ${roleText} cho ${username}?`)) { await loadUsers(); return; }
+                return runAction(`Đã ${roleText} cho ${username}.`, () => request('/api/admin/users/administrator.json', { method: 'POST', body: JSON.stringify({ username, isAdministrator: checked }) }));
+            }
+        }
+
+        function logout() {
+            state.token = ''; state.twoFactorToken = ''; state.users = [];
+            dashboardPanel.classList.add('hidden'); loginPanel.classList.remove('hidden');
+            document.getElementById('logoutButton').classList.add('hidden');
+            showMessage('dashboardMessage', '', 'error');
+            loginName.focus();
+        }
+
+        loginForm.addEventListener('submit', login);
+        document.getElementById('refreshButton').addEventListener('click', () => runAction('Đã làm mới danh sách.', loadUsers));
+        document.getElementById('logoutButton').addEventListener('click', logout);
+        memberRows.addEventListener('click', event => {
+            const button = event.target.closest('[data-action]');
+            if (button && button.dataset.action !== 'role') handleMemberAction(button.dataset.action, button.dataset.username);
+        });
+        memberRows.addEventListener('change', event => {
+            const control = event.target;
+            if (control.matches('[data-action="role"]')) handleMemberAction('role', control.dataset.username, control.checked);
+        });
+    </script>
+</body>
+</html>

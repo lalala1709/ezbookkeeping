@@ -182,8 +182,12 @@ func getConfigWithoutSensitiveData(config *settings.Config) *settings.Config {
 		clonedConfig.SecretKey = "****"
 	}
 
-	if clonedConfig.AdminPassword != "" {
-		clonedConfig.AdminPassword = "****"
+	if clonedConfig.RootAdminEmail != "" {
+		clonedConfig.RootAdminEmail = "****"
+	}
+
+	if clonedConfig.RootAdminPassword != "" {
+		clonedConfig.RootAdminPassword = "****"
 	}
 
 	if clonedConfig.AmapApplicationSecret != "" {

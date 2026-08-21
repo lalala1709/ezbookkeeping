@@ -59,6 +59,13 @@ func startWebServer(c *core.CliContext) error {
 		}
 	}
 
+	err = ensureRootAdministrator(c, config)
+
+	if err != nil {
+		log.BootErrorf(c, "[webserver.startWebServer] initializes root administrator failed, because %s", err.Error())
+		return err
+	}
+
 	err = requestid.InitializeRequestIdGenerator(c, config)
 
 	if err != nil {
@@ -133,6 +140,7 @@ func startWebServer(c *core.CliContext) error {
 
 	serverSettingsCacheStore := persistence.NewInMemoryStore(time.Minute)
 
+	router.StaticFile("/admin", filepath.Join(config.StaticRootPath, "admin.html"))
 	router.StaticFile("/", filepath.Join(config.StaticRootPath, "index.html"))
 	router.Static("/js", filepath.Join(config.StaticRootPath, "js"))
 	router.Static("/css", filepath.Join(config.StaticRootPath, "css"))
@@ -334,11 +342,13 @@ func startWebServer(c *core.CliContext) error {
 		apiRoute.GET("/logout.json", bindApiWithTokenUpdate(api.Tokens.TokenRevokeCurrentHandler, config))
 
 		adminRoute := apiRoute.Group("/admin")
+		adminRoute.Use(bindMiddleware(middlewares.JWTAuthorizationByHeader(config), config))
 		{
 			adminRoute.GET("/users.json", bindApi(api.Administration.ListUsersHandler, config))
 			adminRoute.POST("/users/password.json", bindApi(api.Administration.UpdateUserPasswordHandler, config))
 			adminRoute.POST("/users/delete.json", bindApi(api.Administration.DeleteUserHandler, config))
 			adminRoute.POST("/users/clear_data.json", bindApi(api.Administration.ClearUserDataHandler, config))
+			adminRoute.POST("/users/administrator.json", bindApi(api.Administration.UpdateUserAdministratorHandler, config))
 		}
 
 		apiV1Route := apiRoute.Group("/v1")

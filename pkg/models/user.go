@@ -116,6 +116,8 @@ type User struct {
 	IncomeAmountColor     AmountColorType            `xorm:"TINYINT"`
 	FeatureRestriction    core.UserFeatureRestrictions
 	Disabled              bool
+	IsAdministrator       bool `xorm:"NOT NULL"`
+	IsRootAdministrator   bool `xorm:"NOT NULL"`
 	Deleted               bool `xorm:"NOT NULL"`
 	EmailVerified         bool `xorm:"NOT NULL"`
 	CreatedUnixTime       int64

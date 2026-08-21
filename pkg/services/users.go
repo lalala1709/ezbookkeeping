@@ -545,6 +545,31 @@ func (s *UserService) DisableUser(c core.Context, username string) error {
 	return nil
 }
 
+// UpdateUserAdministratorStatus updates the administrator flags of a user.
+func (s *UserService) UpdateUserAdministratorStatus(c core.Context, username string, isAdministrator bool, isRootAdministrator bool) error {
+	if username == "" {
+		return errs.ErrUsernameIsEmpty
+	}
+
+	now := time.Now().Unix()
+
+	updateModel := &models.User{
+		IsAdministrator:     isAdministrator,
+		IsRootAdministrator: isRootAdministrator,
+		UpdatedUnixTime:     now,
+	}
+
+	updatedRows, err := s.UserDB().NewSession(c).Cols("is_administrator", "is_root_administrator", "updated_unix_time").Where("username=? AND deleted=?", username, false).Update(updateModel)
+
+	if err != nil {
+		return err
+	} else if updatedRows < 1 {
+		return errs.ErrUserNotFound
+	}
+
+	return nil
+}
+
 // UpdateUserFeatureRestriction sets user user feature restrictions
 func (s *UserService) UpdateUserFeatureRestriction(c core.Context, username string, featureRestriction core.UserFeatureRestrictions) error {
 	if username == "" {

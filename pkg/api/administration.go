@@ -1,7 +1,6 @@
 package api
 
 import (
-	"crypto/subtle"
 	"strings"
 
 	"github.com/mayswind/ezbookkeeping/pkg/core"
@@ -12,9 +11,7 @@ import (
 	"github.com/mayswind/ezbookkeeping/pkg/settings"
 )
 
-const adminPasswordHeaderName = "X-EZB-Admin-Password"
-
-// AdministrationApi provides limited, password-protected member administration.
+// AdministrationApi provides member administration for administrator accounts.
 type AdministrationApi struct {
 	ApiUsingConfig
 	users                   *services.UserService
@@ -50,15 +47,17 @@ var (
 
 // ListUsersHandler returns active member accounts.
 func (a *AdministrationApi) ListUsersHandler(c *core.WebContext) (any, *errs.Error) {
-	if err := a.authorize(c); err != nil {
+	currentUser, err := a.authorize(c)
+
+	if err != nil {
 		return nil, err
 	}
 
-	users, err := a.users.GetAllUsers(c)
+	users, getUsersErr := a.users.GetAllUsers(c)
 
-	if err != nil {
-		log.Errorf(c, "[administration.ListUsersHandler] failed to get all users, because %s", err.Error())
-		return nil, errs.Or(err, errs.ErrOperationFailed)
+	if getUsersErr != nil {
+		log.Errorf(c, "[administration.ListUsersHandler] failed to get all users, because %s", getUsersErr.Error())
+		return nil, errs.Or(getUsersErr, errs.ErrOperationFailed)
 	}
 
 	userInfos := make([]*models.AdminUserInfo, len(users))
@@ -66,25 +65,31 @@ func (a *AdministrationApi) ListUsersHandler(c *core.WebContext) (any, *errs.Err
 	for i := 0; i < len(users); i++ {
 		user := users[i]
 		userInfos[i] = &models.AdminUserInfo{
-			Username:        user.Username,
-			Email:           user.Email,
-			Nickname:        user.Nickname,
-			Disabled:        user.Disabled,
-			EmailVerified:   user.EmailVerified,
-			CreatedUnixTime: user.CreatedUnixTime,
-			LastLoginAt:     user.LastLoginUnixTime,
+			Username:              user.Username,
+			Email:                 user.Email,
+			Nickname:              user.Nickname,
+			Disabled:              user.Disabled,
+			IsAdministrator:       user.IsAdministrator,
+			IsRootAdministrator:   user.IsRootAdministrator,
+			EmailVerified:         user.EmailVerified,
+			CreatedUnixTime:       user.CreatedUnixTime,
+			LastLoginAt:           user.LastLoginUnixTime,
 		}
 	}
 
 	return &models.AdminUserListResponse{
-		TotalUserCount: int64(len(userInfos)),
-		Users:          userInfos,
+		TotalUserCount:             int64(len(userInfos)),
+		CurrentUsername:            currentUser.Username,
+		CurrentIsRootAdministrator: currentUser.IsRootAdministrator,
+		Users:                      userInfos,
 	}, nil
 }
 
 // UpdateUserPasswordHandler resets a member password and revokes their active sessions.
 func (a *AdministrationApi) UpdateUserPasswordHandler(c *core.WebContext) (any, *errs.Error) {
-	if err := a.authorize(c); err != nil {
+	currentUser, err := a.authorize(c)
+
+	if err != nil {
 		return nil, err
 	}
 
@@ -103,6 +108,10 @@ func (a *AdministrationApi) UpdateUserPasswordHandler(c *core.WebContext) (any, 
 		return nil, errs.ErrUserNotFound
 	}
 
+	if !a.canManageUser(currentUser, user) {
+		return nil, errs.ErrNotPermittedToPerformThisAction
+	}
+
 	user.Password = request.Password
 	err = a.users.UpdateUserPassword(c, user)
 
@@ -116,13 +125,15 @@ func (a *AdministrationApi) UpdateUserPasswordHandler(c *core.WebContext) (any, 
 		return nil, errs.Or(err, errs.ErrOperationFailed)
 	}
 
-	log.Infof(c, "[administration.UpdateUserPasswordHandler] administrator reset password for user \"%s\"", request.Username)
+	log.Infof(c, "[administration.UpdateUserPasswordHandler] administrator \"%s\" reset password for user \"%s\"", currentUser.Username, request.Username)
 	return true, nil
 }
 
 // DeleteUserHandler removes a member account and revokes their active sessions.
 func (a *AdministrationApi) DeleteUserHandler(c *core.WebContext) (any, *errs.Error) {
-	if err := a.authorize(c); err != nil {
+	currentUser, err := a.authorize(c)
+
+	if err != nil {
 		return nil, err
 	}
 
@@ -130,6 +141,10 @@ func (a *AdministrationApi) DeleteUserHandler(c *core.WebContext) (any, *errs.Er
 
 	if requestErr != nil {
 		return nil, requestErr
+	}
+
+	if !a.canManageUser(currentUser, user) {
+		return nil, errs.ErrNotPermittedToPerformThisAction
 	}
 
 	if err := a.users.DeleteUser(c, user.Username); err != nil {
@@ -142,13 +157,15 @@ func (a *AdministrationApi) DeleteUserHandler(c *core.WebContext) (any, *errs.Er
 		return nil, errs.Or(err, errs.ErrOperationFailed)
 	}
 
-	log.Infof(c, "[administration.DeleteUserHandler] administrator deleted user \"%s\"", user.Username)
+	log.Infof(c, "[administration.DeleteUserHandler] administrator \"%s\" deleted user \"%s\"", currentUser.Username, user.Username)
 	return true, nil
 }
 
 // ClearUserDataHandler deletes a member's financial data but retains the member account.
 func (a *AdministrationApi) ClearUserDataHandler(c *core.WebContext) (any, *errs.Error) {
-	if err := a.authorize(c); err != nil {
+	currentUser, err := a.authorize(c)
+
+	if err != nil {
 		return nil, err
 	}
 
@@ -156,6 +173,10 @@ func (a *AdministrationApi) ClearUserDataHandler(c *core.WebContext) (any, *errs
 
 	if requestErr != nil {
 		return nil, requestErr
+	}
+
+	if !a.canManageUser(currentUser, user) {
+		return nil, errs.ErrNotPermittedToPerformThisAction
 	}
 
 	if err := a.templates.DeleteAllTemplates(c, user.Uid); err != nil {
@@ -195,20 +216,75 @@ func (a *AdministrationApi) ClearUserDataHandler(c *core.WebContext) (any, *errs
 		return nil, errs.Or(err, errs.ErrOperationFailed)
 	}
 
-	log.Infof(c, "[administration.ClearUserDataHandler] administrator cleared data for user \"%s\"", user.Username)
+	log.Infof(c, "[administration.ClearUserDataHandler] administrator \"%s\" cleared data for user \"%s\"", currentUser.Username, user.Username)
 	return true, nil
 }
 
-func (a *AdministrationApi) authorize(c *core.WebContext) *errs.Error {
-	adminPassword := a.CurrentConfig().AdminPassword
-	suppliedPassword := c.GetHeader(adminPasswordHeaderName)
+// UpdateUserAdministratorHandler grants or removes administrator permission. Only the root administrator may change roles.
+func (a *AdministrationApi) UpdateUserAdministratorHandler(c *core.WebContext) (any, *errs.Error) {
+	currentUser, err := a.authorize(c)
 
-	if adminPassword == "" || suppliedPassword == "" || subtle.ConstantTimeCompare([]byte(suppliedPassword), []byte(adminPassword)) != 1 {
-		log.Warnf(c, "[administration.authorize] denied administration request")
-		return errs.ErrUnauthorizedAccess
+	if err != nil {
+		return nil, err
 	}
 
-	return nil
+	if !currentUser.IsRootAdministrator {
+		return nil, errs.ErrNotPermittedToPerformThisAction
+	}
+
+	var request models.AdminUserAdministratorUpdateRequest
+
+	if err := c.ShouldBindJSON(&request); err != nil {
+		log.Warnf(c, "[administration.UpdateUserAdministratorHandler] parse request failed, because %s", err.Error())
+		return nil, errs.NewIncompleteOrIncorrectSubmissionError(err)
+	}
+
+	request.Username = strings.TrimSpace(request.Username)
+	user, err := a.users.GetUserByUsername(c, request.Username)
+
+	if err != nil {
+		log.Warnf(c, "[administration.UpdateUserAdministratorHandler] failed to get user \"%s\", because %s", request.Username, err.Error())
+		return nil, errs.ErrUserNotFound
+	}
+
+	if user.IsRootAdministrator {
+		return nil, errs.ErrNotPermittedToPerformThisAction
+	}
+
+	if err := a.users.UpdateUserAdministratorStatus(c, user.Username, request.IsAdministrator, false); err != nil {
+		log.Errorf(c, "[administration.UpdateUserAdministratorHandler] failed to update administrator permission for user \"%s\", because %s", user.Username, err.Error())
+		return nil, errs.Or(err, errs.ErrOperationFailed)
+	}
+
+	if !request.IsAdministrator {
+		if err := a.revokeUserTokens(c, user.Uid); err != nil {
+			log.Errorf(c, "[administration.UpdateUserAdministratorHandler] failed to revoke sessions for user \"%s\", because %s", user.Username, err.Error())
+			return nil, errs.Or(err, errs.ErrOperationFailed)
+		}
+	}
+
+	log.Infof(c, "[administration.UpdateUserAdministratorHandler] root administrator changed administrator permission for user \"%s\" to %t", user.Username, request.IsAdministrator)
+	return true, nil
+}
+
+func (a *AdministrationApi) authorize(c *core.WebContext) (*models.User, *errs.Error) {
+	user, err := a.users.GetUserById(c, c.GetCurrentUid())
+
+	if err != nil {
+		log.Warnf(c, "[administration.authorize] failed to get current user, because %s", err.Error())
+		return nil, errs.ErrUnauthorizedAccess
+	}
+
+	if user.Disabled || (!user.IsAdministrator && !user.IsRootAdministrator) {
+		log.Warnf(c, "[administration.authorize] denied administration request for user \"%s\"", user.Username)
+		return nil, errs.ErrUnauthorizedAccess
+	}
+
+	return user, nil
+}
+
+func (a *AdministrationApi) canManageUser(currentUser *models.User, targetUser *models.User) bool {
+	return currentUser.Uid != targetUser.Uid && !targetUser.IsRootAdministrator
 }
 
 func (a *AdministrationApi) getRequestedUser(c *core.WebContext, handlerName string) (*models.User, *errs.Error) {

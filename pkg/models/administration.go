@@ -2,8 +2,10 @@ package models
 
 // AdminUserListResponse represents the members visible in the administration area.
 type AdminUserListResponse struct {
-	TotalUserCount int64            `json:"totalUserCount,string"`
-	Users          []*AdminUserInfo `json:"users"`
+	TotalUserCount             int64            `json:"totalUserCount,string"`
+	CurrentUsername            string           `json:"currentUsername"`
+	CurrentIsRootAdministrator bool             `json:"currentIsRootAdministrator"`
+	Users                      []*AdminUserInfo `json:"users"`
 }
 
 // AdminUserInfo is the limited user information exposed to an administrator.
@@ -12,6 +14,8 @@ type AdminUserInfo struct {
 	Email           string `json:"email"`
 	Nickname        string `json:"nickname"`
 	Disabled        bool   `json:"disabled"`
+	IsAdministrator bool   `json:"isAdministrator"`
+	IsRootAdministrator bool `json:"isRootAdministrator"`
 	EmailVerified   bool   `json:"emailVerified"`
 	CreatedUnixTime int64  `json:"createdAt"`
 	LastLoginAt     int64  `json:"lastLoginAt"`
@@ -26,4 +30,10 @@ type AdminUserPasswordUpdateRequest struct {
 // AdminUserActionRequest represents an administration action for one user.
 type AdminUserActionRequest struct {
 	Username string `json:"username" binding:"required,notBlank,max=32,validUsername"`
+}
+
+// AdminUserAdministratorUpdateRequest represents an administrator role update.
+type AdminUserAdministratorUpdateRequest struct {
+	Username        string `json:"username" binding:"required,notBlank,max=32,validUsername"`
+	IsAdministrator bool   `json:"isAdministrator"`
 }
