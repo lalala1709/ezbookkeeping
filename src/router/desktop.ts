@@ -10,6 +10,7 @@ import ForgetPasswordPage from '@/views/desktop/ForgetPasswordPage.vue';
 import ResetPasswordPage from '@/views/desktop/ResetPasswordPage.vue';
 import OAuth2CallbackPage from '@/views/desktop/OAuth2CallbackPage.vue';
 import UnlockPage from '@/views/desktop/UnlockPage.vue';
+import AdministrationPage from '@/views/desktop/AdministrationPage.vue';
 
 import HomePage from '@/views/desktop/HomePage.vue';
 
@@ -268,6 +269,10 @@ const router = createRouter({
             path: '/login',
             component: LoginPage,
             beforeEnter: checkNotLogin
+        },
+        {
+            path: '/admin',
+            component: AdministrationPage
         },
         {
             path: '/signup',

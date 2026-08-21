@@ -139,6 +139,18 @@ func (s *UserService) GetUserByEmail(c core.Context, email string) (*models.User
 	return user, nil
 }
 
+// GetAllUsers returns all non-deleted user accounts.
+func (s *UserService) GetAllUsers(c core.Context) ([]*models.User, error) {
+	users := make([]*models.User, 0)
+	err := s.UserDB().NewSession(c).Where("deleted=?", false).Asc("created_unix_time").Find(&users)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return users, nil
+}
+
 // GetUserAvatar returns the user avatar image data according to user uid
 func (s *UserService) GetUserAvatar(c core.Context, uid int64, fileExtension string) ([]byte, error) {
 	if uid <= 0 {

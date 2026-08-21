@@ -28,6 +28,10 @@ services:
         value: console
       - key: EBK_SECURITY_SECRET_KEY
         generateValue: true
+      # Set this secret in Render before opening /desktop#/admin. A blank value
+      # keeps the administration API disabled.
+      - key: EBK_SECURITY_ADMIN_PASSWORD
+        sync: false
       # Free Render web services have no persistent disk. Disable uploads so
       # avatars and receipt pictures are not silently lost after a redeploy.
       - key: EBK_USER_ENABLE_CUSTOM_ICON

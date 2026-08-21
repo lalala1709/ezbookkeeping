@@ -389,6 +389,7 @@ type Config struct {
 	// Secret
 	SecretKeyNoSet                        bool
 	SecretKey                             string
+	AdminPassword                         string
 	TrustedProxyIPs                       []*net.IPNet
 	TrustedProxyTextualIPs                []string
 	TokenExpiredTime                      uint32
@@ -1030,6 +1031,7 @@ func loadSecurityConfiguration(config *Config, configFile *ini.File, sectionName
 
 	config.SecretKeyNoSet = !getConfigItemIsSet(configFile, sectionName, "secret_key")
 	config.SecretKey = getConfigItemStringValue(configFile, sectionName, "secret_key", defaultSecretKey)
+	config.AdminPassword = getConfigItemStringValue(configFile, sectionName, "admin_password", "")
 	config.TrustedProxyIPs, config.TrustedProxyTextualIPs, err = getCIDRList(configFile, sectionName, "trusted_proxy_ips", defaultTrustedProxyIPs)
 
 	if err != nil {

@@ -333,6 +333,14 @@ func startWebServer(c *core.CliContext) error {
 
 		apiRoute.GET("/logout.json", bindApiWithTokenUpdate(api.Tokens.TokenRevokeCurrentHandler, config))
 
+		adminRoute := apiRoute.Group("/admin")
+		{
+			adminRoute.GET("/users.json", bindApi(api.Administration.ListUsersHandler, config))
+			adminRoute.POST("/users/password.json", bindApi(api.Administration.UpdateUserPasswordHandler, config))
+			adminRoute.POST("/users/delete.json", bindApi(api.Administration.DeleteUserHandler, config))
+			adminRoute.POST("/users/clear_data.json", bindApi(api.Administration.ClearUserDataHandler, config))
+		}
+
 		apiV1Route := apiRoute.Group("/v1")
 		apiV1Route.Use(bindMiddleware(middlewares.JWTAuthorizationByHeader(config), config))
 		apiV1Route.Use(bindMiddleware(middlewares.APITokenIpLimit(config), config))

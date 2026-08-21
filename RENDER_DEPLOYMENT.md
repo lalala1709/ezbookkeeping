@@ -30,6 +30,11 @@ upstream project for updates every day.
 5. For a personal-only finance site, set the Render environment variable
    `EBK_USER_ENABLE_REGISTER` to `false` after creating your account, then
    redeploy. Do not expose the registration page to other people unnecessarily.
+6. To use the member administration page, set a long, unique
+   `EBK_SECURITY_ADMIN_PASSWORD` secret in Render. Open
+   `https://…onrender.com/desktop#/admin` and enter that password. The page can
+   list members, set a new member password, remove a member, or clear a
+   member's bookkeeping data. Leaving the secret blank disables the page.
 
 ## Updating source code
 
