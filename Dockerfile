@@ -16,7 +16,10 @@ WORKDIR /go/src/github.com/mayswind/ezbookkeeping
 COPY . .
 RUN docker/backend-build-pre-setup.sh
 RUN apk add git gcc g++ libc-dev
-RUN ./build.sh backend
+# The exchange-rate integration test calls third-party APIs and is flaky in
+# hosted Docker builds. BUILD_PIPELINE keeps those network-only checks skipped
+# while retaining all deterministic backend tests.
+RUN BUILD_PIPELINE=1 ./build.sh backend
 
 # Build frontend files
 FROM --platform=$BUILDPLATFORM node:24.18.0-alpine3.24 AS fe-builder
