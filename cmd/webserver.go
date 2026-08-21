@@ -51,7 +51,7 @@ func startWebServer(c *core.CliContext) error {
 	log.BootInfof(c, "[webserver.startWebServer] static root path is %s", config.StaticRootPath)
 
 	if config.AutoUpdateDatabase {
-		err = updateAllDatabaseTablesStructure(c)
+		err = updateAllDatabaseTablesStructure(c, config)
 
 		if err != nil {
 			log.BootErrorf(c, "[webserver.startWebServer] update database table structure failed, because %s", err.Error())

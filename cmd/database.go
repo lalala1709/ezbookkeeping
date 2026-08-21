@@ -7,6 +7,7 @@ import (
 	"github.com/mayswind/ezbookkeeping/pkg/datastore"
 	"github.com/mayswind/ezbookkeeping/pkg/log"
 	"github.com/mayswind/ezbookkeeping/pkg/models"
+	"github.com/mayswind/ezbookkeeping/pkg/settings"
 )
 
 // Database represents the database command
@@ -23,7 +24,7 @@ var Database = &cli.Command{
 }
 
 func updateDatabaseStructure(c *core.CliContext) error {
-	_, err := initializeSystem(c)
+	config, err := initializeSystem(c)
 
 	if err != nil {
 		return err
@@ -31,7 +32,7 @@ func updateDatabaseStructure(c *core.CliContext) error {
 
 	log.CliInfof(c, "[database.updateDatabaseStructure] starting maintaining")
 
-	err = updateAllDatabaseTablesStructure(c)
+	err = updateAllDatabaseTablesStructure(c, config)
 
 	if err != nil {
 		log.CliErrorf(c, "[database.updateDatabaseStructure] update database table structure failed, because %s", err.Error())
@@ -42,8 +43,14 @@ func updateDatabaseStructure(c *core.CliContext) error {
 	return nil
 }
 
-func updateAllDatabaseTablesStructure(c *core.CliContext) error {
+func updateAllDatabaseTablesStructure(c *core.CliContext, config *settings.Config) error {
 	var err error
+
+	err = migrateUserAdministrationColumns(c, config)
+
+	if err != nil {
+		return err
+	}
 
 	err = datastore.Container.UserStore.SyncStructs(new(models.User))
 
@@ -182,4 +189,32 @@ func updateAllDatabaseTablesStructure(c *core.CliContext) error {
 	log.BootInfof(c, "[database.updateAllDatabaseTablesStructure] insights explorer table maintained successfully")
 
 	return nil
+}
+
+// migrateUserAdministrationColumns backfills the administration flags before
+// xorm applies their NOT NULL constraints. This keeps upgrades safe for
+// databases that already contain user records.
+func migrateUserAdministrationColumns(c *core.CliContext, config *settings.Config) error {
+	if config.DatabaseConfig.DatabaseType != settings.PostgresDbType {
+		return nil
+	}
+
+	session := datastore.Container.UserStore.Choose(0).NewSession(c)
+	defer session.Close()
+
+	_, err := session.Exec(`DO $$
+BEGIN
+    IF to_regclass('public."user"') IS NOT NULL THEN
+        ALTER TABLE "user" ADD COLUMN IF NOT EXISTS is_administrator BOOLEAN DEFAULT FALSE;
+        ALTER TABLE "user" ADD COLUMN IF NOT EXISTS is_root_administrator BOOLEAN DEFAULT FALSE;
+        UPDATE "user" SET is_administrator = FALSE WHERE is_administrator IS NULL;
+        UPDATE "user" SET is_root_administrator = FALSE WHERE is_root_administrator IS NULL;
+        ALTER TABLE "user" ALTER COLUMN is_administrator SET DEFAULT FALSE;
+        ALTER TABLE "user" ALTER COLUMN is_root_administrator SET DEFAULT FALSE;
+        ALTER TABLE "user" ALTER COLUMN is_administrator SET NOT NULL;
+        ALTER TABLE "user" ALTER COLUMN is_root_administrator SET NOT NULL;
+    END IF;
+END $$;`)
+
+	return err
 }
