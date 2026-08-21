@@ -166,6 +166,10 @@ func getConfigWithoutSensitiveData(config *settings.Config) *settings.Config {
 		clonedConfig.DatabaseConfig.DatabasePassword = "****"
 	}
 
+	if clonedConfig.DatabaseConfig.DatabaseURL != "" {
+		clonedConfig.DatabaseConfig.DatabaseURL = "****"
+	}
+
 	if clonedConfig.SMTPConfig.SMTPPasswd != "" {
 		clonedConfig.SMTPConfig.SMTPPasswd = "****"
 	}
