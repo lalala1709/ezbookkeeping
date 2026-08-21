@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: ezbookkeeping
+    name: fbtmoney
     runtime: docker
     plan: free
     region: singapore
@@ -16,7 +16,7 @@ services:
       - key: EBK_SERVER_ROOT_URL
         fromService:
           type: web
-          name: ezbookkeeping
+          name: fbtmoney
           envVarKey: RENDER_EXTERNAL_URL
       - key: EBK_DATABASE_TYPE
         value: postgres
