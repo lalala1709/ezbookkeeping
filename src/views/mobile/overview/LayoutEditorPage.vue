@@ -11,11 +11,11 @@
             </f7-nav-right>
         </f7-navbar>
 
-        <f7-list sortable sortable-enabled class="overview-layout-editor no-margin"
+        <f7-list sortable sortable-enabled sortable-tap-hold class="overview-layout-editor no-margin"
                  :sortable-move-elements="false" @sortable:sort="onSort" v-if="draftLayout.widgets.length">
             <li class="cursor-pointer" :key="widget.id" v-for="widget in draftLayout.widgets">
                 <overview-widget class="overview-widget-editor-content" :widget="widget" :loading="loadingOverview" />
-                <div class="sortable-handler overview-widget-drag-area" @click="showWidgetActions(widget)"></div>
+                <div class="overview-widget-drag-area" @click="showWidgetActions(widget)"></div>
             </li>
         </f7-list>
 
@@ -50,7 +50,7 @@
             </f7-actions-group>
         </f7-actions>
 
-        <f7-popup push swipe-to-close swipe-handler=".swipe-handler" :opened="showAddWidgetPopup" @popup:closed="showAddWidgetPopup = false">
+        <f7-popup push swipe-to-close :opened="showAddWidgetPopup" @popup:closed="showAddWidgetPopup = false">
             <f7-page>
                 <f7-navbar>
                     <div class="swipe-handler"></div>
@@ -123,6 +123,8 @@ import type { Router } from 'framework7/types';
 import { useI18n } from '@/locales/helpers.ts';
 
 import { useSettingsStore } from '@/stores/setting.ts';
+import { useAccountsStore } from '@/stores/account.ts';
+import { useTransactionCategoriesStore } from '@/stores/transactionCategory.ts';
 import { useOverviewStore } from '@/stores/overview.ts';
 
 import { itemAndIndex } from '@/core/base.ts';
@@ -161,6 +163,8 @@ const { tt } = useI18n();
 const { showToast, showConfirm } = useI18nUIComponents();
 
 const settingsStore = useSettingsStore();
+const accountsStore = useAccountsStore();
+const transactionCategoriesStore = useTransactionCategoriesStore();
 const overviewStore = useOverviewStore();
 
 const widgetSettingsPopup = useTemplateRef<WidgetSettingsPopupType>('widgetSettingsPopup');
@@ -207,7 +211,10 @@ function reload(force: boolean): void {
     loadingOverview.value = true;
 
     const requirements: OverviewWidgetDataRequirement[] = getOverviewDataRequirements(draftLayout.value, MOBILE_OVERVIEW_WIDGET_DEFINITIONS);
-    const promises: Promise<unknown>[] = [];
+    const promises: Promise<unknown>[] = [
+        accountsStore.loadAllAccounts({ force: false }),
+        transactionCategoriesStore.loadAllCategories({ force: false })
+    ];
 
     if (requirements.includes(OverviewWidgetDataRequirement.TransactionOverview)) {
         promises.push(overviewStore.loadTransactionOverview({
@@ -383,6 +390,8 @@ reload(false);
     --f7-sortable-sorting-item-box-shadow: none;
 
     .overview-widget-drag-area {
+        position: absolute;
+        z-index: 1;
         inset: 0;
         width: auto;
         height: auto;
@@ -391,6 +400,16 @@ reload(false);
         &::after {
             display: none;
         }
+    }
+
+    > ul > li .overview-widget-editor-content {
+        transition: transform 180ms ease, filter 180ms ease;
+        transform-origin: center;
+    }
+
+    > ul > li.sorting .overview-widget-editor-content {
+        transform: translateY(-4px) scale(1.015);
+        filter: drop-shadow(0 10px 12px rgba(0, 0, 0, 0.22));
     }
 
     li.sorting .overview-widget-drag-area {
