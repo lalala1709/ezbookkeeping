@@ -33,8 +33,8 @@
 
         <template #content>
             <overview-dashboard editing :layout="draftLayout" :loading="loadingOverview"
-                                @update:layout="draftLayout = $event" @configure="configureWidget"
-                                @add="addWidget" @remove="removeWidget" @refresh="reload(true)" />
+                                @update:layout="draftLayout = $event" @add="addWidget" @refresh="reload(true)"
+                                @configure="configureWidget" @duplicate="duplicateWidget" @remove="removeWidget" />
         </template>
     </main-page-layout>
 
@@ -79,14 +79,17 @@ import {
 } from '@/consts/overview_layout.ts';
 
 import {
+    cloneWidget,
     getOverviewDataRequirements,
     getOverviewTransactionOverviewMonths,
-    getOverviewRecentTransactionCount,
+    getOverviewRecentTransactionsQueries,
     getOverviewAssetTrendMonths,
     getOverviewCalendarHeatmapMonths,
     getOverviewTransactionCategoryStatisticDateTypes,
     compactDesktopOverviewWidgets,
     findDesktopOverviewWidgetPosition,
+    findDesktopOverviewWidgetDuplicatePosition,
+    resolveDesktopOverviewWidgetCollisions,
     isDefaultDesktopOverviewLayout,
     normalizeDesktopOverviewLayout,
     cloneDesktopOverviewLayout,
@@ -186,7 +189,7 @@ function reload(force: boolean): void {
     if (requirements.includes(OverviewWidgetDataRequirement.RecentTransactions)) {
         promises.push(overviewStore.loadRecentTransactions({
             force: force,
-            count: getOverviewRecentTransactionCount(draftLayout.value)
+            queries: getOverviewRecentTransactionsQueries(draftLayout.value)
         }));
     }
 
@@ -233,6 +236,19 @@ function addWidget(): void {
         draftLayout.value.widgets.push(newWidget);
         reload(false);
     });
+}
+
+function duplicateWidget(widget: DesktopOverviewWidgetLayout): void {
+    const position = findDesktopOverviewWidgetDuplicatePosition(draftLayout.value.widgets, widget);
+    const duplicatedWidget: DesktopOverviewWidgetLayout = {
+        ...cloneWidget(widget),
+        id: generateRandomUUID(),
+        ...position
+    };
+
+    const widgets = resolveDesktopOverviewWidgetCollisions([...draftLayout.value.widgets, duplicatedWidget], duplicatedWidget.id);
+    draftLayout.value.widgets = compactDesktopOverviewWidgets(widgets, duplicatedWidget.id);
+    reload(false);
 }
 
 function removeWidget(id: string): void {
