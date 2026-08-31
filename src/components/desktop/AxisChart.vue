@@ -46,6 +46,7 @@ interface AxisChartDataItem {
     type: string;
     areaStyle?: object;
     stack?: string;
+    showSymbol?: boolean;
     symbolSize?: (data: number) => number;
     animation: boolean;
     data: number[];  // only used for echarts rendering, the actual value is in allOriginalData
@@ -67,8 +68,10 @@ const props = defineProps<{
     hideLegend?: boolean;
     legendPosition?: 'top' | 'bottom';
     hideXAxisLabels?: boolean;
+    hideXAxisLine?: boolean;
     hideYAxisLabels?: boolean;
     hideHorizontalGridLines?: boolean;
+    hideLineSymbols?: boolean;
     oneHundredPercentStacked?: boolean;
     sortingType: number;
     showValue?: boolean;
@@ -190,6 +193,7 @@ const axisChartData = computed<AxisChartData>(() => {
             },
             selected: true,
             type: 'line',
+            showSymbol: !props.hideLineSymbols,
             animation: !props.skeleton,
             data: allAmounts.map(amount => amount.toDoubleNumber())
         };
@@ -445,6 +449,12 @@ const chartOptions = computed<object>(() => {
                 data: props.allCategoryNames,
                 boundaryGap: !props.hideYAxisLabels,
                 inverse: textDirection.value === TextDirection.RTL,
+                axisLine: {
+                    show: !props.hideXAxisLine
+                },
+                axisTick: {
+                    show: !props.hideXAxisLine
+                },
                 axisLabel: {
                     show: !props.hideXAxisLabels,
                     color: isDarkMode.value ? '#888' : '#666'

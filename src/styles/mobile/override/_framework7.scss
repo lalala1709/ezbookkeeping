@@ -1,25 +1,5 @@
 /** Fixing framework7 issues **/
 
-/** https://github.com/framework7io/framework7/pull/4400 **/
-html[dir="rtl"].ios {
-    .toggle-icon {
-        transform: translateX(calc(var(--f7-toggle-knob-tx) * -1)) scale(1) !important;
-    }
-
-    .toggle-active-state .toggle-icon {
-        transform: translateX(calc(var(--f7-toggle-knob-tx) * -1)) scale(1.4);
-    }
-}
-
-/** https://github.com/framework7io/framework7/pull/4403 **/
-html[dir="rtl"].ios {
-    .segmented-strong .segmented-highlight {
-        left: unset;
-        right: var(--f7-segmented-strong-padding);
-        transform: translateX(calc(var(--f7-segmented-highlight-active) * -100% - var(--f7-segmented-highlight-active) * var(--f7-segmented-highlight-between)));
-    }
-}
-
 /** Replacing the default style of framework7 **/
 .ios .navbar-inner {
     padding-top: calc(8px + var(--f7-safe-area-top));
@@ -343,6 +323,48 @@ html[dir="rtl"] .list .item-content > .item-inner > .item-after .list-item-check
     margin: 0;
 }
 
+.list li.combined-item,
+.list li.combined-item > .item-link {
+    > .item-content {
+        > .item-inner {
+            padding-bottom: 0;
+        }
+    }
+}
+
+.list li.combined-item + li,
+.list li.combined-item + li > .item-link {
+    > .item-content {
+        --f7-list-item-min-height: 40px;
+
+        > .item-inner {
+            padding-top: 6px;
+        }
+    }
+}
+
+.list li.item-no-divider,
+.list li.item-no-divider > .item-link {
+    > .item-content {
+        > .item-inner {
+            &:after {
+                background-color: transparent;
+            }
+        }
+    }
+}
+
+.list li.item-title-full-line,
+.list li.item-title-full-line > .item-link {
+    > .item-content {
+        > .item-inner {
+            > .item-title {
+                width: 100%;
+            }
+        }
+    }
+}
+
 .list li.list-color-picker-input {
     > .item-content {
         > .item-inner {
@@ -379,6 +401,10 @@ html[dir="rtl"] .list .item-content > .item-inner > .item-after .list-item-check
             }
         }
     }
+}
+
+.default-text-color {
+    color: var(--f7-text-color);
 }
 
 .skeleton-text .list-item-toggle .item-after {

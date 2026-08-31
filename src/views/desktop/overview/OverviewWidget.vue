@@ -3,7 +3,7 @@
                           v-if="widget.type === OverviewWidgetType.AssetSummary" />
 
     <account-balance-list-widget :loading="loading" :editing="editing" :title="widgetTitle"
-                                 :account-categories="widget.settings['accountCategories'] as number[]"
+                                 :account-ids="widget.settings['accountIds'] as string[]"
                                  :item-count="widget.settings['itemCount'] as number"
                                  :sort-by="widget.settings['sortBy'] as string"
                                  :always-show-amount="widget.settings['alwaysShowAmount'] as boolean"
@@ -25,6 +25,8 @@
                                                v-else-if="widget.type === OverviewWidgetType.PeriodNetIncomeAndSavingsRate" />
 
     <income-expense-trend-widget :loading="loading" :title="widgetTitle"
+                                 :chart-type="widget.settings['chartType'] as number"
+                                 :transaction-types="widget.settings['transactionTypes'] as number[]"
                                  :months="widget.settings['months'] as number"
                                  :show-x-axis-labels="widget.settings['showXAxisLabels'] as boolean"
                                  :show-legend="widget.settings['showLegend'] as boolean"

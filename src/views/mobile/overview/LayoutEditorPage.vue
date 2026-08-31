@@ -1,17 +1,18 @@
 <template>
     <f7-page>
         <f7-navbar>
-            <f7-nav-left>
+            <f7-nav-left :class="{ 'disabled': loadingOverview }">
                 <f7-link icon-f7="xmark" @click="cancel"></f7-link>
             </f7-nav-left>
             <f7-nav-title :title="tt('Home Page Layout')"></f7-nav-title>
-            <f7-nav-right class="navbar-compact-icons">
+            <f7-nav-right :class="{ 'navbar-compact-icons': true, 'disabled': loadingOverview }">
                 <f7-link icon-f7="ellipsis" @click="showMoreActionSheet = true"></f7-link>
                 <f7-link icon-f7="checkmark_alt" :class="{ disabled: !isModified }" @click="save"></f7-link>
             </f7-nav-right>
         </f7-navbar>
 
         <f7-list sortable sortable-enabled sortable-tap-hold class="overview-layout-editor no-margin"
+                 :class="{ 'disabled': loadingOverview }"
                  :sortable-move-elements="false" @sortable:sort="onSort" v-if="draftLayout.widgets.length">
             <li class="cursor-pointer" :key="widget.id" v-for="widget in draftLayout.widgets">
                 <overview-widget class="overview-widget-editor-content" :widget="widget" :loading="loadingOverview" />
@@ -409,6 +410,7 @@ reload(false);
     --f7-list-bg-color: transparent;
     --f7-sortable-sorting-item-bg-color: transparent;
     --f7-sortable-sorting-item-box-shadow: none;
+    --f7-sortable-handler-width: var(--f7-list-item-padding-horizontal);
 
     .overview-widget-drag-area {
         position: absolute;

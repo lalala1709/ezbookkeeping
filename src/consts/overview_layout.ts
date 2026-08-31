@@ -1,7 +1,7 @@
 import type { PartialRecord } from '@/core/base.ts';
 import { DateRange } from '@/core/datetime.ts';
-import { AccountCategory } from '@/core/account.ts';
 import { TransactionType } from '@/core/transaction.ts';
+import { TrendChartType } from '@/core/statistics.ts';
 import {
     type OverviewWidgetColorSettingItem,
     type OverviewWidgetTextboxSettingItem,
@@ -66,19 +66,10 @@ export const DESKTOP_OVERVIEW_WIDGET_DEFINITIONS: PartialRecord<OverviewWidgetTy
         supportsSettings: [
             WIDGET_TITLE_SETTING,
             {
-                settingType: 'customSelect',
-                settingName: 'accountCategories',
-                displayName: 'Account Category',
-                selectValues: [
-                    { name: 'All', value: 0 },
-                    ...AccountCategory.values().map(category => ({
-                        name: category.name,
-                        value: category.type
-                    }))
-                ],
-                multiple: true,
-                allValue: 0,
-                selectValueSource: 'accountCategories'
+                settingType: 'accountSelect',
+                settingName: 'accountIds',
+                displayName: 'Account',
+                disableHiddenAccounts: true
             },
             {
                 settingType: 'itemCountSelect',
@@ -108,7 +99,7 @@ export const DESKTOP_OVERVIEW_WIDGET_DEFINITIONS: PartialRecord<OverviewWidgetTy
             }
         ],
         defaultSettings: {
-            accountCategories: [0],
+            accountIds: [],
             itemCount: 4,
             sortBy: 'displayOrder',
             alwaysShowAmount: false
@@ -217,6 +208,38 @@ export const DESKTOP_OVERVIEW_WIDGET_DEFINITIONS: PartialRecord<OverviewWidgetTy
         supportsSettings: [
             WIDGET_TITLE_SETTING,
             {
+                settingType: 'customSelect',
+                settingName: 'transactionTypes',
+                displayName: 'Transaction Type',
+                selectValues: [
+                    {
+                        name: 'Income',
+                        value: TransactionType.Income
+                    },
+                    {
+                        name: 'Expense',
+                        value: TransactionType.Expense
+                    }
+                ],
+                multiple: true,
+                minSelections: 1
+            },
+            {
+                settingType: 'customSelect',
+                settingName: 'chartType',
+                displayName: 'Chart Type',
+                selectValues: [
+                    {
+                        name: TrendChartType.Column.name,
+                        value: TrendChartType.Column.type
+                    },
+                    {
+                        name: TrendChartType.Area.name,
+                        value: TrendChartType.Area.type
+                    }
+                ]
+            },
+            {
                 settingType: 'monthSelect',
                 settingName: 'months',
                 displayName: 'Date Range',
@@ -234,6 +257,8 @@ export const DESKTOP_OVERVIEW_WIDGET_DEFINITIONS: PartialRecord<OverviewWidgetTy
             }
         ],
         defaultSettings: {
+            chartType: TrendChartType.Column.type,
+            transactionTypes: [TransactionType.Income, TransactionType.Expense],
             months: 12,
             showXAxisLabels: true,
             showLegend: true
@@ -504,6 +529,8 @@ export const DEFAULT_DESKTOP_OVERVIEW_LAYOUT: DesktopOverviewLayout = {
             w: 6,
             h: 6,
             settings: {
+                chartType: TrendChartType.Column.type,
+                transactionTypes: [TransactionType.Income, TransactionType.Expense],
                 months: 12,
                 showXAxisLabels: true,
                 showLegend: true
@@ -544,6 +571,12 @@ export const MOBILE_OVERVIEW_WIDGET_DEFINITIONS: PartialRecord<OverviewWidgetTyp
         supportsSettings: [
             WIDGET_TITLE_SETTING,
             {
+                settingType: 'accountSelect',
+                settingName: 'accountIds',
+                displayName: 'Account',
+                disableHiddenAccounts: true
+            },
+            {
                 settingType: 'itemCountSelect',
                 settingName: 'itemCount',
                 displayName: 'Item Count',
@@ -565,28 +598,13 @@ export const MOBILE_OVERVIEW_WIDGET_DEFINITIONS: PartialRecord<OverviewWidgetTyp
                 ]
             },
             {
-                settingType: 'customSelect',
-                settingName: 'accountCategories',
-                displayName: 'Account Category',
-                selectValues: [
-                    { name: 'All', value: 0 },
-                    ...AccountCategory.values().map(category => ({
-                        name: category.name,
-                        value: category.type
-                    }))
-                ],
-                multiple: true,
-                allValue: 0,
-                selectValueSource: 'accountCategories'
-            },
-            {
                 settingType: 'switch',
                 settingName: 'alwaysShowAmount',
                 displayName: 'Always Show Amount'
             }
         ],
         defaultSettings: {
-            accountCategories: [0],
+            accountIds: [],
             itemCount: 4,
             sortBy: 'displayOrder',
             alwaysShowAmount: false
@@ -620,6 +638,15 @@ export const MOBILE_OVERVIEW_WIDGET_DEFINITIONS: PartialRecord<OverviewWidgetTyp
             OverviewWidgetDataRequirement.TransactionOverview
         ]
     },
+    [OverviewWidgetType.CurrentMonthExpenseProgress]: {
+        type: OverviewWidgetType.CurrentMonthExpenseProgress,
+        name: 'This Month\'s Expense Progress',
+        supportsSettings: [],
+        defaultSettings: {},
+        dataRequirements: [
+            OverviewWidgetDataRequirement.TransactionOverviewLast2Months
+        ]
+    },
     [OverviewWidgetType.PeriodIncomeExpense]: {
         type: OverviewWidgetType.PeriodIncomeExpense,
         name: 'Period Income and Expense',
@@ -647,6 +674,30 @@ export const MOBILE_OVERVIEW_WIDGET_DEFINITIONS: PartialRecord<OverviewWidgetTyp
                 DateRange.ThisMonth.type,
                 DateRange.ThisYear.type
             ]
+        },
+        dataRequirements: [
+            OverviewWidgetDataRequirement.TransactionOverview
+        ]
+    },
+    [OverviewWidgetType.PeriodNetIncomeAndSavingsRate]: {
+        type: OverviewWidgetType.PeriodNetIncomeAndSavingsRate,
+        name: 'Period Net Income and Savings Rate',
+        supportsSettings: [
+            WIDGET_TITLE_SETTING,
+            {
+                settingType: 'customSelect',
+                settingName: 'dateRange',
+                displayName: 'Date Range',
+                selectValues: [
+                    DateRange.Today,
+                    DateRange.ThisWeek,
+                    DateRange.ThisMonth,
+                    DateRange.ThisYear
+                ].map(dateRange => ({ name: dateRange.name, value: dateRange.type }))
+            }
+        ],
+        defaultSettings: {
+            dateRange: DateRange.ThisMonth.type
         },
         dataRequirements: [
             OverviewWidgetDataRequirement.TransactionOverview
