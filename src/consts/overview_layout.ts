@@ -3,6 +3,7 @@ import { DateRange } from '@/core/datetime.ts';
 import { TransactionType } from '@/core/transaction.ts';
 import { TrendChartType } from '@/core/statistics.ts';
 import {
+    type OverviewWidgetSwitchSettingItem,
     type OverviewWidgetColorSettingItem,
     type OverviewWidgetTextboxSettingItem,
     type DesktopOverviewLayout,
@@ -29,6 +30,12 @@ const WIDGET_TITLE_SETTING: OverviewWidgetTextboxSettingItem = {
     settingName: 'title',
     displayName: 'Widget Title',
     placeholder: 'Widget Title'
+};
+
+const WIDGET_SHOW_TITLE_SETTING: OverviewWidgetSwitchSettingItem = {
+    settingType: 'switch',
+    settingName: 'showTitle',
+    displayName: 'Show Title'
 };
 
 const WIDGET_BACKGROUND_COLOR_SETTINGS: OverviewWidgetColorSettingItem[] = [
@@ -247,6 +254,11 @@ export const DESKTOP_OVERVIEW_WIDGET_DEFINITIONS: PartialRecord<OverviewWidgetTy
             },
             {
                 settingType: 'switch',
+                settingName: 'smoothCurve',
+                displayName: 'Smooth Curve'
+            },
+            {
+                settingType: 'switch',
                 settingName: 'showXAxisLabels',
                 displayName: 'Show Horizontal Axis Labels'
             },
@@ -260,6 +272,7 @@ export const DESKTOP_OVERVIEW_WIDGET_DEFINITIONS: PartialRecord<OverviewWidgetTy
             chartType: TrendChartType.Column.type,
             transactionTypes: [TransactionType.Income, TransactionType.Expense],
             months: 12,
+            smoothCurve: false,
             showXAxisLabels: true,
             showLegend: true
         },
@@ -284,6 +297,11 @@ export const DESKTOP_OVERVIEW_WIDGET_DEFINITIONS: PartialRecord<OverviewWidgetTy
             },
             {
                 settingType: 'switch',
+                settingName: 'smoothCurve',
+                displayName: 'Smooth Curve'
+            },
+            {
+                settingType: 'switch',
                 settingName: 'showXAxisLabels',
                 displayName: 'Show Horizontal Axis Labels'
             },
@@ -295,6 +313,7 @@ export const DESKTOP_OVERVIEW_WIDGET_DEFINITIONS: PartialRecord<OverviewWidgetTy
         ],
         defaultSettings: {
             months: 12,
+            smoothCurve: false,
             showXAxisLabels: true,
             showLegend: true
         },
@@ -532,6 +551,7 @@ export const DEFAULT_DESKTOP_OVERVIEW_LAYOUT: DesktopOverviewLayout = {
                 chartType: TrendChartType.Column.type,
                 transactionTypes: [TransactionType.Income, TransactionType.Expense],
                 months: 12,
+                smoothCurve: false,
                 showXAxisLabels: true,
                 showLegend: true
             }
@@ -570,6 +590,7 @@ export const MOBILE_OVERVIEW_WIDGET_DEFINITIONS: PartialRecord<OverviewWidgetTyp
         name: 'Account Balance List',
         supportsSettings: [
             WIDGET_TITLE_SETTING,
+            WIDGET_SHOW_TITLE_SETTING,
             {
                 settingType: 'accountSelect',
                 settingName: 'accountIds',
@@ -604,6 +625,7 @@ export const MOBILE_OVERVIEW_WIDGET_DEFINITIONS: PartialRecord<OverviewWidgetTyp
             }
         ],
         defaultSettings: {
+            showTitle: false,
             accountIds: [],
             itemCount: 4,
             sortBy: 'displayOrder',
@@ -641,8 +663,13 @@ export const MOBILE_OVERVIEW_WIDGET_DEFINITIONS: PartialRecord<OverviewWidgetTyp
     [OverviewWidgetType.CurrentMonthExpenseProgress]: {
         type: OverviewWidgetType.CurrentMonthExpenseProgress,
         name: 'This Month\'s Expense Progress',
-        supportsSettings: [],
-        defaultSettings: {},
+        supportsSettings: [
+            WIDGET_TITLE_SETTING,
+            WIDGET_SHOW_TITLE_SETTING
+        ],
+        defaultSettings: {
+            showTitle: false
+        },
         dataRequirements: [
             OverviewWidgetDataRequirement.TransactionOverviewLast2Months
         ]
@@ -684,6 +711,7 @@ export const MOBILE_OVERVIEW_WIDGET_DEFINITIONS: PartialRecord<OverviewWidgetTyp
         name: 'Period Net Income and Savings Rate',
         supportsSettings: [
             WIDGET_TITLE_SETTING,
+            WIDGET_SHOW_TITLE_SETTING,
             {
                 settingType: 'customSelect',
                 settingName: 'dateRange',
@@ -697,10 +725,63 @@ export const MOBILE_OVERVIEW_WIDGET_DEFINITIONS: PartialRecord<OverviewWidgetTyp
             }
         ],
         defaultSettings: {
+            showTitle: false,
             dateRange: DateRange.ThisMonth.type
         },
         dataRequirements: [
             OverviewWidgetDataRequirement.TransactionOverview
+        ]
+    },
+    [OverviewWidgetType.ExpenseCategoryRanking]: {
+        type: OverviewWidgetType.ExpenseCategoryRanking,
+        name: 'Expense Category Ranking',
+        supportsSettings: [
+            WIDGET_TITLE_SETTING,
+            WIDGET_SHOW_TITLE_SETTING,
+            {
+                settingType: 'customSelect',
+                settingName: 'dateRange',
+                displayName: 'Date Range',
+                selectValues: [
+                    DateRange.ThisMonth,
+                    DateRange.ThisYear
+                ].map(dateRange => ({
+                    name: dateRange.name,
+                    value: dateRange.type
+                }))
+            },
+            {
+                settingType: 'customSelect',
+                settingName: 'categoryLevel',
+                displayName: 'Category Level',
+                selectValues: [
+                    {
+                        name: 'Primary Category',
+                        value: 'primary'
+                    },
+                    {
+                        name: 'Secondary Category',
+                        value: 'secondary'
+                    }
+                ]
+            },
+            {
+                settingType: 'itemCountSelect',
+                settingName: 'itemCount',
+                displayName: 'Item Count',
+                itemCountValues: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+            }
+        ],
+        defaultSettings: {
+            showTitle: false,
+            dateRange: DateRange.ThisMonth.type,
+            categoryLevel: 'primary',
+            itemCount: 4
+        },
+        dataRequirements: [
+            OverviewWidgetDataRequirement.Accounts,
+            OverviewWidgetDataRequirement.TransactionCategories,
+            OverviewWidgetDataRequirement.TransactionCategoryStatistics
         ]
     }
 };

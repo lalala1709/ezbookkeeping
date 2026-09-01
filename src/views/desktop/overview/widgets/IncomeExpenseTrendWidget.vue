@@ -1,13 +1,14 @@
 <template>
     <v-card class="overview-widget d-flex flex-column" :class="{ 'disabled': loading }">
         <template #title>
-            <overview-widget-header :title="title || tt('Income and Expense Trends')" :icon="mdiChartBar" />
+            <overview-widget-header :title="displayTitle" :icon="mdiChartBar" />
         </template>
 
-        <monthly-income-and-expense-chart :data="monthlyIncomeAndExpenseData" :is-dark-mode="isDarkMode" :title="title"
+        <monthly-income-and-expense-chart :data="monthlyIncomeAndExpenseData" :is-dark-mode="isDarkMode"
                                           :loading="loading" :disabled="loading" :enable-click-item="true"
                                           :chart-type="chartType"
                                           :transaction-types="transactionTypes"
+                                          :smooth-curve="smoothCurve"
                                           :hide-x-axis-labels="!showXAxisLabels" :hide-legend="!showLegend"
                                           @click="clickMonthlyIncomeOrExpense" />
     </v-card>
@@ -27,6 +28,7 @@ import { useOverviewStore } from '@/stores/overview.ts';
 
 import { DateRange } from '@/core/datetime.ts';
 import { ThemeType } from '@/core/theme.ts';
+import { TransactionType } from '@/core/transaction.ts';
 import {
     type TransactionOverviewData,
     type TransactionMonthlyIncomeAndExpenseData,
@@ -46,6 +48,7 @@ const props = defineProps<{
     chartType: number;
     transactionTypes: number[];
     months: number;
+    smoothCurve: boolean;
     showXAxisLabels: boolean;
     showLegend: boolean;
 }>();
@@ -59,6 +62,23 @@ const overviewStore = useOverviewStore();
 
 const isDarkMode = computed<boolean>(() => theme.global.name.value === ThemeType.Dark);
 const transactionOverview = computed<TransactionOverviewData>(() => overviewStore.transactionOverview);
+
+const displayTitle = computed<string>(() => {
+    if (props.title) {
+        return props.title;
+    }
+
+    const showIncome = props.transactionTypes.includes(TransactionType.Income);
+    const showExpense = props.transactionTypes.includes(TransactionType.Expense);
+
+    if (showIncome && !showExpense) {
+        return tt('Income Trends');
+    } else if (!showIncome && showExpense) {
+        return tt('Expense Trends');
+    } else {
+        return tt('Income and Expense Trends');
+    }
+});
 
 const monthlyIncomeAndExpenseData = computed<TransactionMonthlyIncomeAndExpenseData[]>(() => {
     const data: TransactionMonthlyIncomeAndExpenseData[] = [];

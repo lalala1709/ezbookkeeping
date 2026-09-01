@@ -54,11 +54,11 @@ const props = defineProps<{
     chartType: number;
     transactionTypes: number[];
     disabled: boolean;
-    title?: string;
     isDarkMode?: boolean;
     enableClickItem?: boolean;
     hideLegend?: boolean;
     hideXAxisLabels?: boolean;
+    smoothCurve?: boolean;
 }>();
 
 const emit = defineEmits<{
@@ -288,6 +288,7 @@ const chartOptions = computed<object>(() => {
                 yAxisIndex: 0,
                 stack: props.chartType === TrendChartType.Column.type && showIncomeAndExpense.value ? 'Total' : undefined,
                 areaStyle: props.chartType === TrendChartType.Area.type ? {} : undefined,
+                smooth: props.smoothCurve,
                 showSymbol: false,
                 itemStyle: {
                     color: expenseIncomeAmountColor.incomeAmountColor,
@@ -309,6 +310,7 @@ const chartOptions = computed<object>(() => {
                 yAxisIndex: props.chartType === TrendChartType.Column.type && showIncomeAndExpense.value ? 1 : 0,
                 stack: props.chartType === TrendChartType.Column.type && showIncomeAndExpense.value ? 'Total' : undefined,
                 areaStyle: props.chartType === TrendChartType.Area.type ? {} : undefined,
+                smooth: props.smoothCurve,
                 showSymbol: false,
                 itemStyle: {
                     color: expenseIncomeAmountColor.expenseAmountColor,
