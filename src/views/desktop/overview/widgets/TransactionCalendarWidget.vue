@@ -12,7 +12,7 @@
                                   :default-currency="defaultCurrency"
                                   :min-date="transactionCalendarMinDate" :max-date="transactionCalendarMaxDate"
                                   :daily-total-amounts="dailyTotalAmounts"
-                                  :show-amount="showAmountInHomePage"
+                                  :show-amount="showAmountInCalendar"
                                   :show-income-amount="showIncome"
                                   :show-expense-amount="showExpense"
                                   :show-alternate-date="showAlternateDate"
@@ -45,6 +45,7 @@ const props = defineProps<{
     title?: string;
     transactionTypes: number[];
     showAlternateDate: boolean;
+    showAmount: boolean;
 }>();
 
 const router = useRouter();
@@ -54,7 +55,7 @@ const { tt } = useI18n();
 
 const {
     currentCalendarDate,
-    showAmountInHomePage,
+    showAmountInCalendar,
     showIncome,
     showExpense,
     defaultCurrency,
@@ -92,11 +93,11 @@ function selectDate(date: TextualYearMonthDay): void {
                     .dp--calendar-row {
                         > .dp--calendar-item {
                             .transaction-calendar-daily-amounts {
-                            > span.transaction-calendar-alternate-date,
-                            > span.transaction-calendar-daily-amount {
-                                font-size: 0.8125rem;
-                            }
+                                > span.transaction-calendar-alternate-date,
+                                > span.transaction-calendar-daily-amount {
+                                    font-size: 0.8125rem;
                                 }
+                            }
                         }
                     }
                 }

@@ -58,6 +58,7 @@
     <transaction-calendar-widget :loading="loading" :editing="editing" :title="widgetTitle"
                                  :transaction-types="widget.settings['transactionTypes'] as number[]"
                                  :show-alternate-date="widget.settings['showAlternateDate'] as boolean"
+                                 :show-amount="widget.settings['showAmount'] as boolean"
                                  v-else-if="widget.type === OverviewWidgetType.TransactionCalendar" />
 
     <transaction-calendar-heatmap-widget :loading="loading" :editing="editing" :title="widgetTitle"
@@ -94,12 +95,13 @@ const props = defineProps<{
     editing?: boolean
 }>();
 
+defineEmits<{
+    (e: 'refresh'): void
+}>();
+
 const widgetTitle = computed<string>(() => {
     const title = props.widget.settings['title'];
     return typeof title === 'string' ? title.trim() : '';
 });
 
-defineEmits<{
-    (e: 'refresh'): void
-}>();
 </script>

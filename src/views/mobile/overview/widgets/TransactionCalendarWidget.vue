@@ -6,7 +6,7 @@
                                   :default-currency="false"
                                   :min-date="transactionCalendarMinDate" :max-date="transactionCalendarMaxDate"
                                   :daily-total-amounts="dailyTotalAmounts"
-                                  :show-amount="showAmountInHomePage"
+                                  :show-amount="showAmountInCalendar"
                                   :show-income-amount="showIncome"
                                   :show-expense-amount="showExpense"
                                   :show-alternate-date="showAlternateDate"
@@ -31,13 +31,18 @@ const props = defineProps<{
     title?: string;
     transactionTypes: number[];
     showAlternateDate: boolean;
+    showAmount: boolean;
+}>();
+
+const emit = defineEmits<{
+    (e: 'navigate', path: string): void;
 }>();
 
 const environmentsStore = useEnvironmentsStore();
 
 const {
     currentCalendarDate,
-    showAmountInHomePage,
+    showAmountInCalendar,
     showIncome,
     showExpense,
     dailyTotalAmounts,
@@ -53,7 +58,7 @@ function selectDate(date: TextualYearMonthDay): void {
     const url = getTransactionListUrl(date);
 
     if (url) {
-
+        emit('navigate', url);
     }
 }
 </script>
